@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Sắp Xếp Vật Thể Tự Động</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 28px;
+            text-transform: uppercase;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 15px;
+        }
+
+        .config-section {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .config-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .config-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .config-item label {
+            font-weight: bold;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .config-item input {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .config-item input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .btn-connect {
+            background: #3498db;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn-connect:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .btn-connect:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .status-disconnected {
+            background: #fee;
+            color: #c33;
+            border: 2px solid #fcc;
+        }
+
+        .status-connected {
+            background: #efe;
+            color: #3c3;
+            border: 2px solid #cfc;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .left-panel {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            border: 3px solid #dee2e6;
+        }
+
+        .status-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .status-box.active {
+            background: #4CAF50;
+            color: white;
+            border-color: #45a049;
+            box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .status-box h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .info-box {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 2px solid #e0e0e0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .color-display {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin: 20px auto;
+            border: 5px solid #333;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            background: #f0f0f0;
+        }
+
+        .button-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .btn-reset {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+
+        .btn-export {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-export:hover {
+            background: #e67e22;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .right-panel {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            border: 3px solid #dee2e6;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .chart-title {
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .pie-chart {
+            width: 300px;
+            height: 300px;
+            margin: 0 auto 30px;
+            border-radius: 50%;
+            position: relative;
+        }
+        #pieChart{
+        display: block;
+        margin: 0 auto;
+        }
+
+        .stats-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .stats-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 5px solid;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .stats-item.red { border-left-color: #e74c3c; }
+        .stats-item.green { border-left-color: #2ecc71; }
+        .stats-item.blue { border-left-color: #3498db; }
+        .stats-item.yellow { border-left-color: #f1c40f; }
+        .stats-item.black { border-left-color: #34495e; }
+        .stats-item.white { border-left-color: #ecf0f1; border: 2px solid #bdc3c7; }
+        .stats-item.total { border-left-color: #9b59b6; background: #e8daef; }
+
+        .color-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .color-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #333;
+        }
+
+        .robot-animation {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 100%);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            border: 3px solid #2196f3;
+        }
+
+        .conveyor-belt {
+            position: absolute;
+            bottom: 30px;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background: repeating-linear-gradient(
+                90deg,
+                #78909c 0px,
+                #78909c 20px,
+                #607d8b 20px,
+                #607d8b 40px
+            );
+            animation: moveBelt 2s linear infinite;
+        }
+
+        @keyframes moveBelt {
+            0% { background-position: 0 0; }
+            100% { background-position: 40px 0; }
+        }
+
+        .robot-arm {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 120px;
+        }
+
+        .arm-base {
+            width: 60px;
+            height: 20px;
+            background: #424242;
+            margin: 0 auto;
+            border-radius: 5px;
+        }
+
+        .arm-segment {
+            width: 15px;
+            height: 80px;
+            background: linear-gradient(180deg, #616161 0%, #424242 100%);
+            margin: 0 auto;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        .arm-gripper {
+            width: 40px;
+            height: 30px;
+            background: #ff9800;
+            margin: 0 auto;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        .object {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            bottom: 50px;
+            left: 10%;
+            border: 3px solid #333;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            background: #ccc;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Hệ Thống Tự Động Nhận Diện và Sắp Xếp Vật Thể Dựa Trên Màu Sắc 🎨</h1>
+        
+        <!-- Trạng thái kết nối Firebase -->
+        <div class="config-section">
+            <div class="connection-status status-disconnected" id="connectionStatus">
+                <span class="status-dot" style="background: #c33;"></span>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="left-panel">
+                <div class="robot-animation">
+                    <div class="robot-arm">
+                        <div class="arm-base"></div>
+                        <div class="arm-segment"></div>
+                        <div class="arm-gripper"></div>
+                    </div>
+                    <div class="object" id="movingObject"></div>
+                    <div class="conveyor-belt"></div>
+                </div>
+
+                <div class="status-box" id="detectionStatus">
+                    <h3>🔍 PHÁT HIỆN CÓ VẬT</h3>
+                </div>
+
+                <div class="info-box">
+                    <span>📦 VẬT SỐ: </span>
+                    <span id="objectNumber">0</span>
+                </div>
+
+                <div class="info-box">
+                    <span>🎨 MÀU CỦA VẬT: </span>
+                    <span id="objectColor" style="font-weight: bold;">---</span>
+                </div>
+
+                <div class="color-display" id="colorDisplay"></div>
+
+                <div class="info-box" style="text-align: center; font-size: 20px;">
+                    <span>⏱️ THỜI GIAN SẮP XẾP VẬT</span>
+                    <div style="font-size: 32px; color: #e74c3c; margin-top: 10px;">
+                        <span id="timer">0</span> s
+                    </div>
+                </div>
+                <div class="info-box" style="text-align: center; font-size: 20px;">
+                <div id="colorOrderBox" 
+                    style="margin-top: 10px; padding: 10px; background: #fff; border-radius: 8px; font-weight: bold;">
+                    Vật màu --- thứ ---
+                </div>
+                </div>
+
+                <div class="button-container">
+                    <button class="btn btn-reset" onclick="resetSystem()" disabled id="resetBtn">
+                        🔄 RESET
+                    </button>
+                    <button class="btn btn-export" onclick="exportData()" disabled id="exportBtn">
+                        📥 XUẤT FILE
+                    </button>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div class="chart-container">
+                    <div class="chart-title">📊 BIỂU ĐỒ TRỘN TỔNG SỐ VẬT</div>
+                    <canvas id="pieChart" width="300" height="300"></canvas>
+                    
+                    <ul class="stats-list">
+                        <li class="stats-item red">
+                            <span class="color-label">
+                                <span class="color-dot" style="background: #e74c3c;"></span>
+                                ĐỎ:
+                            </span>
+                            <span id="redCount">0</span>
+                        </li>
+                        <li class="stats-item green">
+                            <span class="color-label">
+                                <span class="color-dot" style="background: #2ecc71;"></span>
+                                LỤC:
+                            </span>
+                            <span id="greenCount">0</span>
+                        </li>
+                        <li class="stats-item blue">
+                            <span class="color-label">
+                                <span class="color-dot" style="background: #3498db;"></span>
+                                LAM:
+                            </span>
+                            <span id="blueCount">0</span>
+                        </li>
+                        <li class="stats-item yellow">
+                            <span class="color-label">
+                                <span class="color-dot" style="background: #f1c40f;"></span>
+                                VÀNG:
+                            </span>
+                            <span id="yellowCount">0</span>
+                        </li>
+                        <li class="stats-item black">
+                            <span class="color-label">
+                                <span class="color-dot" style="background: #2c3e50;"></span>
+                                ĐEN:
+                            </span>
+                            <span id="blackCount">0</span>
+                        </li>
+                        <li class="stats-item white">
+                            <span class="color-label">
+                                <span class="color-dot" style="background: #ecf0f1;"></span>
+                                TRẮNG:
+                            </span>
+                            <span id="whiteCount">0</span>
+                        </li>
+                        <li class="stats-item total">
+                            <span class="color-label">
+                                <strong>📦 TỔNG:</strong>
+                            </span>
+                            <strong id="totalCount">0</strong>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, onValue, get, remove, set } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        // ==========================================
+        // CẤU HÌNH FIREBASE - NHẬP THÔNG TIN CỦA BẠN Ở ĐÂY
+        // ==========================================
+        const firebaseConfig = {
+                    apiKey: "AIzaSyBgzRsUUpotAw230h8JTthlEx_edM41oqI",
+                    databaseURL: "https://doan2-77a41-default-rtdb.asia-southeast1.firebasedatabase.app",
+                    projectId: "doan2-77a41"
+                };
+        // ==========================================
+
+        // Biến toàn cục
+        window.firebaseApp = null;
+        window.database = null;
+        window.isConnected = false;
+        
+        const colorMapping = {
+    // CHUẨN
+    'ĐỎ':   { hex: '#e74c3c', key: 'red' },
+    'LỤC':  { hex: '#2ecc71', key: 'green' },
+    'LAM':  { hex: '#3498db', key: 'blue' },
+    'VÀNG': { hex: '#f1c40f', key: 'yellow' },
+    'ĐEN':  { hex: '#2c3e50', key: 'black' },
+    'TRẮNG':{ hex: '#ecf0f1', key: 'white' },
+
+    // KHÔNG DẤU / UPPER
+    'DO':   { hex: '#e74c3c', key: 'red' },
+    'LUC':  { hex: '#2ecc71', key: 'green' },
+    'VANG': { hex: '#f1c40f', key: 'yellow' },
+    'DEN':  { hex: '#2c3e50', key: 'black' },
+    'TRANG':{ hex: '#ecf0f1', key: 'white' },
+
+    // VIẾT HOA CHỮ CÁI ĐẦU (giống Firebase)
+    'Den':  { hex: '#2c3e50', key: 'black' },
+    'Trang':{ hex: '#ecf0f1', key: 'white' },
+    'Vang': { hex: '#f1c40f', key: 'yellow' },
+    'Do':   { hex: '#e74c3c', key: 'red' },
+    'Luc':  { hex: '#2ecc71', key: 'green' },
+    'Lam':  { hex: '#3498db', key: 'blue' },
+
+    // ➕ THÊM 6 DẠNG "xanh lá / xanh lam"
+    'xanh lá':  { hex: '#2ecc71', key: 'green' },
+    'XANH LÁ':  { hex: '#2ecc71', key: 'green' },
+    'Xanh lá':  { hex: '#2ecc71', key: 'green' },
+
+    'xanh lam': { hex: '#3498db', key: 'blue' },
+    'XANH LAM': { hex: '#3498db', key: 'blue' },
+    'Xanh lam': { hex: '#3498db', key: 'blue' },
+
+    'xanh dương': { hex: '#3498db', key: 'blue' },
+    'XANH DƯƠNG': { hex: '#3498db', key: 'blue' },
+    'Xanh dương': { hex: '#3498db', key: 'blue' },
+
+    'xanh duong': { hex: '#3498db', key: 'blue' },
+    'XANH DUONG': { hex: '#3498db', key: 'blue' },
+    'Xanh Duong': { hex: '#3498db', key: 'blue' },
+
+    'Do':    { key: 'red',    hex: '#e74c3c' },
+    'Luc':   { key: 'green',  hex: '#2ecc71' },
+    'Lam':   { key: 'blue',   hex: '#3498db' },
+    'Vang':  { key: 'yellow', hex: '#f1c40f' },
+    'Den':   { key: 'black',  hex: '#2c3e50' },
+    'Trang': { key: 'white',  hex: '#ecf0f1' }
+
+};
+
+
+        let stats = {
+            red: 0,
+            green: 0,
+            blue: 0,
+            yellow: 0,
+            black: 0,
+            white: 0,
+            total: 0
+        };
+
+        let objectHistory = [];
+        let objectCount = 0;
+        let currentTimer = null;
+        let timerSeconds = 0;
+        let lastDetectedState = false;
+        let processedLogs = new Set(); // Để tránh xử lý trùng log
+
+        // Tự động kết nối Firebase khi trang load
+        async function initFirebase() {
+            console.log('🔄 Đang khởi tạo Firebase...');
+            console.log('Config:', firebaseConfig);
+            
+            try {
+                // Kiểm tra config
+                if (firebaseConfig.apiKey === "YOUR_API_KEY_HERE") {
+                    throw new Error("Chưa cấu hình Firebase! Vui lòng thay thế thông tin trong code.");
+                }
+
+                console.log('📡 Đang kết nối Firebase...');
+                window.firebaseApp = initializeApp(firebaseConfig);
+                window.database = getDatabase(window.firebaseApp);
+                
+                console.log('✅ Firebase App đã khởi tạo');
+                
+                // Test kết nối với timeout
+                const testRef = ref(window.database, '/');
+                console.log('🔍 Đang test kết nối database...');
+                
+                const timeout = new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Timeout: Không thể kết nối sau 10 giây')), 10000)
+                );
+                
+                const getData = get(testRef);
+                
+                await Promise.race([getData, timeout]);
+                
+                console.log('✅ Kết nối database thành công!');
+
+                window.isConnected = true;
+                document.getElementById('connectionStatus').className = 'connection-status status-connected';
+                document.getElementById('connectionStatus').innerHTML = `
+                    <span class="status-dot" style="background: #3c3;"></span>
+                    <span>✅ Đã kết nối Firebase - Đang lắng nghe dữ liệu...</span>
+                `;
+                
+                document.getElementById('resetBtn').disabled = false;
+                document.getElementById('exportBtn').disabled = false;
+
+                // Bắt đầu lắng nghe dữ liệu
+                listenToFirebase();
+
+                console.log('🎧 Đã bắt đầu lắng nghe dữ liệu từ Firebase');
+            } catch (error) {
+                console.error('❌ Lỗi Firebase:', error);
+                document.getElementById('connectionStatus').className = 'connection-status status-disconnected';
+                document.getElementById('connectionStatus').innerHTML = `
+                    <span class="status-dot" style="background: #c33;"></span>
+                    <span>❌ Lỗi: ${error.message}</span>
+                `;
+                
+                // Hiển thị hướng dẫn
+                console.log('%c📋 HƯỚNG DẪN SỬA LỖI:', 'color: blue; font-size: 16px; font-weight: bold');
+                console.log('1. Mở Firebase Console: https://console.firebase.google.com');
+                console.log('2. Chọn project của bạn');
+                console.log('3. Vào Project Settings (biểu tượng bánh răng) → General');
+                console.log('4. Scroll xuống phần "Your apps" → Web app');
+                console.log('5. Copy toàn bộ firebaseConfig và thay thế trong code');
+                console.log('6. Đảm bảo Realtime Database đã được tạo và có rules phù hợp');
+            }
+        }
+
+        // Lắng nghe dữ liệu từ Firebase
+        function listenToFirebase() {
+            // Lắng nghe trạng thái phát hiện từ device/detect
+            const detectRef = ref(window.database, 'device/detect');
+            
+            onValue(detectRef, (snapshot) => {
+                const detectData = snapshot.val();
+                if (detectData) {
+                    console.log('Firebase detect data:', detectData);
+                    processDetectStatus(detectData);
+                }
+            }, (error) => {
+                console.error('Firebase detect read error:', error);
+            });
+
+            // Lắng nghe log màu từ color_log
+            const colorLogRef = ref(window.database, 'color_log');
+            
+            onValue(colorLogRef, (snapshot) => {
+            const colorLogData = snapshot.val();
+
+            if (colorLogData) {
+                processColorLog(colorLogData);
+            } else {
+                // color_log bị xóa / rỗng -> reset UI thống kê + hiển thị gần nhất
+                stats = { red:0, green:0, blue:0, yellow:0, black:0, white:0, total:0 };
+                objectHistory = [];
+                objectCount = 0;
+
+                document.getElementById('objectNumber').textContent = '0';
+                document.getElementById('objectColor').textContent = '---';
+                document.getElementById('objectColor').style.color = 'inherit';
+                document.getElementById('colorDisplay').style.background = '#f0f0f0';
+                document.getElementById('movingObject').style.background = '#ccc';
+
+                const orderBox = document.getElementById('colorOrderBox');
+                orderBox.textContent = `Vật màu ${latestObject.mau} thứ ${latestObject.soThuTuMau}`;
+
+                orderBox.style.color = 'inherit';
+
+                updateStats(); // sẽ vẽ lại biểu đồ + reset counts
+            }
+            });
+
+        }
+
+        // Xử lý trạng thái phát hiện từ device/detect
+        function processDetectStatus(detectData) {
+            const detected = detectData.detected === true || detectData.detected === 'true';
+            const time = detectData.time || '';
+
+            console.log(`🔍 Trạng thái phát hiện: ${detected}, Thời gian: ${time}`);
+
+            // Xử lý trạng thái phát hiện
+            const detectionStatus = document.getElementById('detectionStatus');
+            if (detected && !lastDetectedState) {
+                // Vật mới được phát hiện
+                detectionStatus.classList.add('active');
+                startTimer();
+                console.log('✅ Phát hiện vật mới!');
+            } else if (!detected && lastDetectedState) {
+                // Vật đã rời đi
+                detectionStatus.classList.remove('active');
+                stopTimer();
+                console.log('👋 Vật đã rời đi');
+            }
+
+            lastDetectedState = detected;
+        }
+
+        // Xử lý dữ liệu màu từ color_log
+        function processColorLog(colorLogData) {
+            // Chuyển object thành array và sắp xếp theo thời gian
+            const logEntries = Object.entries(colorLogData).sort((a, b) => {
+                return a[0].localeCompare(b[0]); // Sắp xếp theo key (timestamp)
+            });
+
+            console.log(`📋 Tổng số log: ${logEntries.length}`);
+
+            // Reset stats trước khi đếm lại
+            // Reset stats trước khi đếm lại
+            stats = {
+                red: 0,
+                green: 0,
+                blue: 0,
+                yellow: 0,
+                black: 0,
+                white: 0,
+                total: 0
+            };
+
+            // Xóa objectHistory cũ
+            objectHistory = [];
+            let newObjectCount = 0;
+            let colorOrder = {
+                red: 0, green: 0, blue: 0, yellow: 0, black: 0, white: 0
+            };
+            
+            // Duyệt qua tất cả các log
+            logEntries.forEach(([logId, logData]) => {
+                const color = logData.color;
+                const time = logData.time;
+                const normalized = normalizeColorName(color);
+                
+                // Map màu
+                let mappedColor = null;
+                if (colorMapping[color]) {
+                    mappedColor = color;
+                }
+                // 2. đúng chuỗi normalize
+                else if (colorMapping[normalized]) {
+                    mappedColor = normalized;
+                }
+                // 3. uppercase
+                else if (colorMapping[color.toUpperCase()]) {
+                    mappedColor = color.toUpperCase();
+                }
+
+                if (mappedColor && colorMapping[mappedColor]) {
+                    const colorInfo = colorMapping[mappedColor];
+                    
+                    // Tăng thứ tự màu TRƯỚC KHI lưu vào history
+                    colorOrder[colorInfo.key]++;
+                    
+                    // Đếm số lượng
+                    stats[colorInfo.key]++;
+                    stats.total++;
+                    newObjectCount++;
+
+                    // Lưu vào history với thứ tự màu đã được tăng
+                    objectHistory.push({
+                        soThuTu: newObjectCount,
+                        mau: color,
+                        mauHex: colorInfo.hex,
+                        thoiGian: time,
+                        logId: logId,
+                        soThuTuMau: colorOrder[colorInfo.key],   // ✅ Giờ đây đã được tăng trước
+                        mauKey: colorInfo.key
+                    });
+
+                    console.log(`   ${newObjectCount}. ${mappedColor} (thứ ${colorOrder[colorInfo.key]}) - ${time}`);
+                }
+            });
+
+            // Cập nhật objectCount
+            objectCount = newObjectCount;
+            document.getElementById('objectNumber').textContent = objectCount;
+
+            // Hiển thị màu của vật gần nhất
+            if (objectHistory.length > 0) {
+                const latestObject = objectHistory[objectHistory.length - 1];
+                const objectColorElement = document.getElementById('objectColor');
+                objectColorElement.textContent = latestObject.mau;
+                objectColorElement.style.color = latestObject.mauHex;
+                document.getElementById('colorDisplay').style.background = latestObject.mauHex;
+                document.getElementById('movingObject').style.background = latestObject.mauHex;
+
+                // Tính thứ tự màu này trong toàn bộ lịch sử
+                let sameColorCount = objectHistory.filter(o => o.mauHex === latestObject.mauHex).length;
+
+                // Hiển thị "Vật màu X thứ Y"
+                const orderBox = document.getElementById('colorOrderBox');
+                orderBox.textContent = `Vật màu ${latestObject.mau} thứ ${sameColorCount}`;
+                orderBox.style.color = latestObject.mauHex;
+
+            }
+
+            // Cập nhật giao diện
+            updateStats();
+        }
+
+        function normalizeColorName(rawColor) {
+                if (!rawColor) return '';
+
+                // bỏ dấu + viết hoa
+                let c = rawColor
+                    .trim()
+                    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                    .toUpperCase();
+
+                // 👉 XANH LÁ
+                if (c.includes("XANH") && c.includes("LA"))  return "xanh lá";
+
+                // 👉 XANH LAM hoặc XANH DƯƠNG / XANH DUONG
+                if (c.includes("XANH") && (c.includes("LAM") || c.includes("DUONG"))) {
+                    return "xanh lam";
+                }
+
+                return rawColor;
+            }
+
+
+        // Xử lý dữ liệu từ Firebase (deprecated - giữ để tương thích)
+        function processFirebaseData(data) {
+            // Function này giữ lại để tương thích, nhưng không dùng nữa
+        }
+
+        // Cập nhật thống kê từ counter trong Firebase (deprecated - giữ để tương thích)
+        function updateStatsFromCounter(counterData) {
+            // Function này giữ lại để tương thích, nhưng không dùng nữa
+        }
+
+        // Xử lý vật mới (deprecated - giữ để tương thích)
+        function processNewObject(colorName, time) {
+            const colorInfo = colorMapping[color];
+            if (!colorInfo) return;
+            colorOrder[colorInfo.key]++;
+            // Lưu lịch sử
+            objectHistory.push({
+                soThuTuMau: colorOrder[colorInfo.key],
+                mau: colorName,
+                mauHex: colorInfo.hex,
+                thoiGian: time || new Date().toLocaleString('vi-VN')
+            });
+
+            // Cập nhật giao diện hiển thị màu hiện tại
+            const objectColorElement = document.getElementById('objectColor');
+            objectColorElement.textContent = colorName;
+            objectColorElement.style.color = colorInfo.hex;
+            
+            document.getElementById('colorDisplay').style.background = colorInfo.hex;
+            document.getElementById('movingObject').style.background = colorInfo.hex;
+
+            // Không cập nhật stats ở đây nữa vì sẽ được cập nhật từ counter
+            console.log('✅ Đã xử lý vật mới:', colorName);
+        }
+
+        // Đếm thời gian
+        function startTimer() {
+            if (currentTimer) return;
+
+            timerSeconds = 0;
+
+            document.getElementById('timer').textContent = Math.max(0, timerSeconds - 2);
+
+            currentTimer = setInterval(() => {
+                timerSeconds++;
+
+                const displayTime = Math.max(0, timerSeconds - 2);
+                document.getElementById('timer').textContent = displayTime;
+
+            }, 1000);
+        }
+
+
+        function stopTimer() {
+            if (currentTimer) {
+                clearInterval(currentTimer);
+                currentTimer = null;
+            }
+        }
+
+        // Vẽ biểu đồ
+        function drawPieChart() {
+            const canvas = document.getElementById('pieChart');
+            const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = 120;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const total = stats.total || 1;
+            let currentAngle = -Math.PI / 2;
+
+            const data = [
+                { count: stats.red, color: '#e74c3c' },
+                { count: stats.green, color: '#2ecc71' },
+                { count: stats.blue, color: '#3498db' },
+                { count: stats.yellow, color: '#f1c40f' },
+                { count: stats.black, color: '#2c3e50' },
+                { count: stats.white, color: '#ecf0f1' }
+            ];
+
+            data.forEach(item => {
+                const sliceAngle = (item.count / total) * 2 * Math.PI;
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+                ctx.closePath();
+                ctx.fillStyle = item.color;
+                ctx.fill();
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                currentAngle += sliceAngle;
+            });
+        }
+
+        // Cập nhật thống kê
+        function updateStats() {
+            document.getElementById('redCount').textContent = stats.red;
+            document.getElementById('greenCount').textContent = stats.green;
+            document.getElementById('blueCount').textContent = stats.blue;
+            document.getElementById('yellowCount').textContent = stats.yellow;
+            document.getElementById('blackCount').textContent = stats.black;
+            document.getElementById('whiteCount').textContent = stats.white;
+            document.getElementById('totalCount').textContent = stats.total;
+            drawPieChart();
+        }
+
+        // Reset hệ thống
+        window.resetSystem = async function() {
+            if (!window.isConnected) {
+                alert('⚠️ Chưa kết nối Firebase!');
+                return;
+            }
+
+            if (!confirm('🔄 Bạn có chắc muốn reset toàn bộ dữ liệu?\n\n⚠️ Hành động này sẽ:\n- Xóa toàn bộ color_log trên Firebase\n- Reset device/detect về trạng thái ban đầu\n- Xóa tất cả dữ liệu trên web\n\nKhông thể hoàn tác!')) {
+                return;
+            }
+
+            try {
+                console.log('🔄 Đang reset hệ thống...');
+                
+                // Disable nút reset tạm thời
+                document.getElementById('resetBtn').disabled = true;
+                document.getElementById('resetBtn').textContent = 'Đang reset...';
+
+                // 1. Xóa color_log trên Firebase
+                const colorLogRef = ref(window.database, 'color_log');
+                await remove(colorLogRef);
+                console.log('✅ Đã xóa color_log');
+
+                // 2. Reset device/detect về trạng thái ban đầu
+                const detectRef = ref(window.database, 'device/detect');
+                await set(detectRef, {
+                    detected: false,
+                    time: new Date().toLocaleString('vi-VN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    }).replace(/\//g, '-').replace(',', '')
+                });
+                console.log('✅ Đã reset device/detect');
+
+                // 3. Reset dữ liệu local
+                stopTimer();
+                
+                objectCount = 0;
+                stats = {
+                    red: 0,
+                    green: 0,
+                    blue: 0,
+                    yellow: 0,
+                    black: 0,
+                    white: 0,
+                    total: 0
+                };
+                objectHistory = [];
+                lastDetectedState = false;
+                processedLogs.clear();
+
+                // 4. Reset giao diện
+                document.getElementById('detectionStatus').classList.remove('active');
+                document.getElementById('objectNumber').textContent = '0';
+                document.getElementById('objectColor').textContent = '---';
+                document.getElementById('objectColor').style.color = 'inherit';
+                document.getElementById('colorDisplay').style.background = '#f0f0f0';
+                document.getElementById('movingObject').style.background = '#ccc';
+                document.getElementById('timer').textContent = '0';
+                const orderBox = document.getElementById('colorOrderBox');
+                orderBox.textContent = 'Vật màu --- thứ ---';
+                orderBox.style.color = 'inherit';
+
+                // (nên reset cả biến timerSeconds để chắc chắn)
+                timerSeconds = 0;
+                updateStats();
+                
+                // Enable lại nút reset
+                document.getElementById('resetBtn').disabled = false;
+                document.getElementById('resetBtn').textContent = '🔄 RESET';
+                
+                alert('✅ Đã reset toàn bộ hệ thống!\n\n- Đã xóa tất cả dữ liệu trên Firebase\n- Đã reset giao diện web\n- Hệ thống sẵn sàng hoạt động');
+                
+                console.log('✅ Reset hoàn tất!');
+            } catch (error) {
+                console.error('❌ Lỗi khi reset:', error);
+                alert('❌ Lỗi khi reset hệ thống: ' + error.message);
+                
+                // Enable lại nút reset
+                document.getElementById('resetBtn').disabled = false;
+                document.getElementById('resetBtn').textContent = '🔄 RESET';
+            }
+        };
+
+        // Xuất file
+        window.exportData = function() {
+            if (stats.total === 0) {
+                alert('⚠️ Chưa có dữ liệu để xuất!');
+                return;
+            }
+
+            let csvContent = '\ufeff';
+            csvContent += 'BÁO CÁO HỆ TỔNG SẢN PHẨM ĐÃ PHÂN LOẠI\n';
+            csvContent += '=============================================\n\n';
+            csvContent += 'THỐNG KÊ TỔNG QUAN\n';
+            csvContent += `Tổng số vật: ${stats.total}\n`;
+            csvContent += `Vật màu đỏ: ${stats.red}\n`;
+            csvContent += `Vật màu lục: ${stats.green}\n`;
+            csvContent += `Vật màu lam: ${stats.blue}\n`;
+            csvContent += `Vật màu vàng: ${stats.yellow}\n`;
+            csvContent += `Vật màu đen: ${stats.black}\n`;
+            csvContent += `Vật màu trắng: ${stats.white}\n\n`;
+            
+            csvContent += 'CHI TIẾT TỪNG VẬT\n';
+            csvContent += 'STT,Màu,Thứ tự màu,Thời gian\n';
+
+            
+            objectHistory.forEach(obj => {
+            csvContent += `${obj.soThuTu},${obj.mau},${obj.soThuTuMau},${obj.thoiGian}\n`;
+            });
+
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+            
+            link.setAttribute('href', url);
+            link.setAttribute('download', `BaoCao_SapXepVat_${timestamp}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            alert(`✅ Đã xuất file báo cáo!\n\nTổng số vật: ${stats.total}\nFile: BaoCao_SapXepVat_${timestamp}.csv`);
+        };
+
+        // Khởi tạo
+        drawPieChart();
+        
+        // Tự động kết nối Firebase khi trang load
+        initFirebase();
+    </script>
+</body>
+</html>
